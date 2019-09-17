@@ -1,26 +1,21 @@
-package udp.xulimanghaichieu;
+package tcp.xulimanghaichieu;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
+import java.net.Socket;
 import java.util.Scanner;
 
-public class ClientUDP {
-	public final static String SERVER_IP = "127.0.0.1";
-	public final static int SERVER_PORT = 1234;
-	public final static byte[] BUFFER = new byte[4096];
+public class ClientTCP {
 
-	public static void main(String args[]) throws Exception {
-
-		DatagramSocket ds = null;
+	public static void main(String[] args) {
 		try {
-			ds = new DatagramSocket();
-			System.out.println("Client started ");
-
-			InetAddress server = InetAddress.getByName(SERVER_IP);
-
+			Socket socket = new Socket("localhost", 1234);
+			System.out.println("Client started");
+			DataInputStream dis = new DataInputStream(socket.getInputStream());
+			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 			Scanner sc = new Scanner(System.in);
+
 			int row, col;
 			System.out.println("Enter row: ");
 			row = sc.nextInt();
@@ -29,24 +24,23 @@ public class ClientUDP {
 
 			String data = "";
 			data = Integer.toString(row) + " " + Integer.toString(col) + " " + inputElement(row, col);
+			
+			dos.writeUTF(data);
+			dos.flush();
 
-			byte[] dataString = data.getBytes();
-			DatagramPacket dp = new DatagramPacket(dataString, dataString.length, server, SERVER_PORT);
-			ds.send(dp);
-
-			DatagramPacket incoming = new DatagramPacket(BUFFER, BUFFER.length);
-			ds.receive(incoming);
-			System.out.println("\nResult: " + new String(incoming.getData(), 0, incoming.getLength()));
+			String result = "";
+			result = dis.readUTF();
+			System.out.println("Server said: " + result);
 			sc.close();
-
+			socket.close();
 		} catch (IOException e) {
-			System.err.println(e);
-		} finally {
-			if (ds != null) {
-				ds.close();
-			}
+			e.printStackTrace();
 		}
 
+	}
+	
+	public static String inputArray(int a, int b) {
+		return (String.valueOf(a + " " + b));
 	}
 
 	public static String inputElement(int row, int col) {
@@ -70,4 +64,5 @@ public class ClientUDP {
 		sc.close();
 		return data;
 	}
+
 }

@@ -1,26 +1,26 @@
+package tcp.xulimanghaichieu;
 
-package udp.xulimanghaichieu;
-
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
+import java.net.ServerSocket;
+import java.net.Socket;
 
-public class ServerUDP {
+public class ServerTCP {
 
-	public final static int SERVER_PORT = 1234;
-	public final static byte[] BUFFER = new byte[4096];
-
-	public static void main(String args[]) {
-		DatagramSocket ds = null;
+	public static void main(String[] args) {
 		try {
-			ds = new DatagramSocket(SERVER_PORT);
-			System.out.println("Server started ");
+			ServerSocket serverSocket = new ServerSocket(1234);
+			System.out.println("Server is running at port 1234");
+			System.out.println("Server started");
+			Socket socket = serverSocket.accept();
+			DataInputStream dis = new DataInputStream(socket.getInputStream());
+			DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
 
-			DatagramPacket incoming = new DatagramPacket(BUFFER, BUFFER.length);
-			ds.receive(incoming);
-			String message = new String(incoming.getData(), 0, incoming.getLength());
+			String message = "";
+			message = dis.readUTF();
 			System.out.println("Client said: " + message);
-			
+
 			String[] arrStr = message.split(" ");
 			int row = Integer.parseInt(arrStr[0]);
 			int col = Integer.parseInt(arrStr[1]);
@@ -80,23 +80,19 @@ public class ServerUDP {
 			}
 
 			String calTotal = "Total of prime number " + listPrimeNumber.trim().replaceAll(" ", "+") + " = " + sum;
-			String dataFinal = "\n" + location1 + "\n" + location2 + "\n" + calTotal;
-			System.out.println(dataFinal);
+			String data = "\n" + location1 + "\n" + location2 + "\n" + calTotal;
+			System.out.println(data);
 
-			DatagramPacket outsending = new DatagramPacket(dataFinal.getBytes(), dataFinal.length(),
-					incoming.getAddress(), incoming.getPort());
-			ds.send(outsending);
+			dos.writeUTF(data);
+			dos.flush();
+			socket.close();
+			serverSocket.close();
 
 		} catch (IOException e) {
 			e.printStackTrace();
-		} finally {
-			if (ds != null) {
-				ds.close();
-			}
 		}
-
 	}
-
+	
 	@SuppressWarnings("unused")
 	public static boolean checkPrime(int number) {
 		if (number == 0 || number == 1) {
@@ -114,5 +110,4 @@ public class ServerUDP {
 		}
 		return false;
 	}
-
 }
